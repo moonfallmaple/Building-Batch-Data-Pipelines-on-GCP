@@ -1,0 +1,96 @@
+Objectives
+In this lab you will learn how to:
+
+Migrate existing Spark jobs to Cloud Dataproc
+
+Modify Spark jobs to use Cloud Storage instead of HDFS
+
+Optimize Spark jobs to run on Job specific clusters
+
+
+In GCP console, on the top right toolbar, click the Open Cloud Shell button.
+```
+gcloud auth list
+gcloud config list project
+```
+
+## Part 1: Lift and Shift
+
+Configure and start a Cloud Dataproc cluster
+In the GCP Console, on the Navigation menu, in the Big Data section, click Dataproc.
+
+Click Create Cluster.
+
+Enter sparktodp for Cluster Name.
+
+In the Versioning section, click Change and select 2.0 (Debian 10, Hadoop 3.2, Spark 3.1).
+
+Click Select.
+
+In the Components > Component gateway section, select Enable component gateway.
+
+Under Optional components, Select Jupyter Notebook.
+
+Click Create.
+
+
+## Clone the source repository for the lab
+1. To clone the Git repository for the lab enter the following command in Cloud Shell:
+```
+git -C ~ clone https://github.com/GoogleCloudPlatform/training-data-analyst
+```
+
+2.To locate the default Cloud Storage bucket used by Cloud Dataproc enter the following command in Cloud Shell:
+```
+export DP_STORAGE="gs://$(gcloud dataproc clusters describe sparktodp --region=us-central1 --format=json | jq -r '.config.configBucket')"
+```
+3.To copy the sample notebooks into the Jupyter working folder enter the following command in Cloud Shell:
+```
+gsutil -m cp ~/training-data-analyst/quests/sparktobq/*.ipynb $DP_STORAGE/notebooks/jupyter
+```
+
+
+## Log in to the Jupyter Noteboo
+1.On the Dataproc Clusters page wait for the cluster to finish starting and then click the name of your cluster to open the Cluster details page.
+
+2.Click Web Interfaces.
+
+3.Click the Jupyter link to open a new Jupyter tab in your browser.
+
+4.This opens the Jupyter home page. Here you can see the contents of the /notebooks/jupyter directory in Cloud Storage that now includes the sample Jupyter notebooks used in this lab.
+
+Under the Files tab, click the GCS folder and then click 01_spark.ipynb notebook to open it.
+
+5.Click Cell and then Run All to run all of the cells in the notebook.
+
+6.Page back up to the top of the notebook and follow as the notebook completes runs each cell and outputs the results below them.
+
+```
+
+!wget http://kdd.ics.uci.edu/databases/kddcup99/kddcup.data_10_percent.gz
+
+## In the second code cell, the source data is copied to the default (local) Hadoop file system.
+!hadoop fs -put kddcup* /
+
+## In the third code cell, the command lists contents of the default directory in the cluster's HDFS file system.
+!hadoop fs -ls /
+
+```
+
+## Reading in data
+
+
+## Part 2: Separate Compute and Storage
+1.In the Cloud Shell create a new storage bucket for your source data.
+```
+export PROJECT_ID=$(gcloud info --format='value(config.project)')
+gsutil mb gs://$PROJECT_ID
+```
+2.In the Cloud Shell copy the source data into the bucket.
+```
+wget http://kdd.ics.uci.edu/databases/kddcup99/kddcup.data_10_percent.gz
+gsutil cp kddcup.data_10_percent.gz gs://$PROJECT_ID/
+```
+
+
+```
